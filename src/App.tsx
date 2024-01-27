@@ -1,35 +1,65 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+import { useEffect, useState } from 'react';
+import { Channel as StreamChannel, User } from 'stream-chat';
+import {
+  Channel,
+  ChannelHeader,
+  Chat,
+  MessageInput,
+  VirtualizedMessageList,
+  Window,
+} from 'stream-chat-react';
+
+import { useClient } from './hooks/useClient';
+
+import 'stream-chat-react/dist/css/v2/index.css';
+import './App.css';
+
+const userId = 'small-boat-4';
+const userName = 'small-boat-4';
+
+const user: User = {
+  id: userId,
+  name: userName,
+  image: `https://getstream.io/random_png/?id=${userId}&name=${userName}`,
+};
+
+const apiKey = 'bzg4s28qnk6h';
+const userToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoic21hbGwtYm9hdC00In0.WqlfbEigC9NFIZcXciokBXT_bQ08UHTBE_aKO-5KqxY';
+
+const App = () => {
+  const chatClient = useClient({
+    apiKey,
+    user,
+    tokenOrProvider: userToken,
+  });
+
+  const [channel, setChannel] = useState<StreamChannel>();
+  useEffect(() => {
+    if (!chatClient) return;
+
+    const spaceChannel = chatClient.channel('livestream', 'spacex', {
+      image: 'https://goo.gl/Zefkbx',
+      name: 'SpaceX launch discussion',
+    });
+
+    setChannel(spaceChannel);
+  }, [chatClient]);
+
+
+  if (!chatClient) return null;
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Chat client={chatClient} theme='str-chat__theme-dark'>
+      <Channel channel={channel}>
+        <Window>
+          <ChannelHeader live />
+          <VirtualizedMessageList />
+          <MessageInput focus />
+        </Window>
+      </Channel>
+    </Chat>
+  );
+};
 
-export default App
+export default App;
